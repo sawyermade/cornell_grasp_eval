@@ -149,13 +149,7 @@ def create_vis(vis_dir_path, gt_dict):
 		out_path = os.path.join(vis_dir_path, fname)
 		cv2.imwrite(out_path, img)
 
-def main():
-	# Main Dataset dir
-	dataset_dir_path = sys.argv[1]
-	if len(sys.argv) > 2:
-		vis_dir_path = sys.argv[2]
-	else: vis_dir_path = None
-
+def main(dataset_dir_path, vis_dir_path):
 	# Gets all rgb png paths
 	path_list_rgb = get_rgb_paths(dataset_dir_path)
 
@@ -169,5 +163,14 @@ def main():
 	if vis_dir_path:
 		create_vis(vis_dir_path, gt_dict)
 
+	return gt_dict
+
 if __name__ == '__main__':
-	main()
+	# Args, main dataset path and vis output path
+	dataset_dir_path = sys.argv[1]
+	if len(sys.argv) > 2:
+		vis_dir_path = sys.argv[2]
+	else: vis_dir_path = None
+
+	# Runs main
+	main(dataset_dir_path, vis_dir_path)
