@@ -271,6 +271,8 @@ def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 	mask = True
 	if mask:
 		gt_dict_masks, mask_missed = create_masks(gt_dict)
+		for mask in mask_missed:
+			print(mask)
 	else: 
 		gt_dict_masks = gt_dict
 
