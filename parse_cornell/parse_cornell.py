@@ -1,5 +1,7 @@
 import os, sys, re, cv2, math, numpy as np, requests, jsonpickle
 
+DEBUG = False
+
 # Gets the rgb paths for the 885 pngs
 def get_rgb_paths(dataset_dir_path):
 	# rgb filename regex
@@ -148,11 +150,107 @@ def create_vis(vis_dir_path, gt_dict, incl_negs=False):
 	# Completed successfully
 	return True
 
+# Uploads to Detectron
+def upload(url, frame):
+	# Prep headers for http req
+	content_type = 'application/json'
+	headers = {'content_type': content_type}
+
+	# jsonpickle the numpy frame
+	_, frame_png = cv2.imencode('.png', frame)
+	frame_json = jsonpickle.encode(frame_png)
+
+	# Post and get response
+	try:
+		response = requests.post(url, data=frame_json, headers=headers)
+		if response.text:
+			# Decode response and return it
+			retList = jsonpickle.decode(response.text)
+			retList[0] = cv2.imdecode(retList[0], cv2.IMREAD_COLOR)
+			retList[-1] = [cv2.imdecode(m, cv2.IMREAD_GRAYSCALE) for m in retList[-1]]
+			
+			# returns [vis.png, bbList, labelList, scoreList, maskList]
+			return retList
+		else:
+			return None
+	except:
+		return None
+
 # Creates masks for all 885 rgb pngs using FAIR Detectron/Mask R-CNN
 def create_masks(gt_dict):
+	# rgb filename regex
+	reg_str = r'^pcd(\d{4})r\.png$'
+	reg = re.compile(reg_str)
+
 	# Sets up url for detectron http server, default is local host
 	host, port = '127.0.0.1', '665'
 	url = f'http://{host}:{port}'
+
+	# Creates output dir
+	num_path, fname = os.path.split(list(gt_dict.keys())[0])
+	data_dir, num_dir = os.path.split(num_path)
+	mask_dir = os.path.join(data_dir, 'masks')
+	if not os.path.exists(mask_dir):
+		os.makedirs(mask_dir)
+
+	# Goes through all rgb images in gt dict
+	gt_dict_masks = {}
+	mask_missed = []
+	for path_rgb, rec_dict in gt_dict.items():
+		# Opens rgb image in bgr
+		frame = cv2.imread(path_rgb, -1)
+
+		# [vis.png, bbList, labelList, scoreList, maskList]
+		retList = upload(url, frame)
+
+		# If mask found
+		if retList:
+			#DEBUG Shows vis img
+			if DEBUG:
+				visImg = retList[0]
+				visImg = cv2.resize(visImg, (1200, 900))
+				cv2.imshow('Inference', visImg)
+				k = cv2.waitKey(1)
+				if k == 27:
+					cv2.destroyAllWindows()
+					break 
+
+			# Gets mask list
+			maskList = retList[-1]
+			bbList = retList[1]
+			gt_dict_masks.update({
+				path_rgb : {
+					'pos'  : rec_dict['pos'],
+					'neg'  : rec_dict['neg'],
+					'mask' : maskList,
+					'bb'   : bbList
+				}
+
+			})
+
+			# Gets rgb image number for output masks
+			num_path, fname = os.path.split(path_rgb)
+			fnum = reg.match(fname).group(1)
+
+			# Writes vis file
+			img_vis = retList[0]
+			fname_vis = f'pred{fnum}maskvis.png'
+			path_vis = os.path.join(mask_dir, fname_vis)
+			cv2.imwrite(path_vis, img_vis)
+
+			# Goes through all the masks
+			for count, mask in enumerate(maskList):
+				mask[mask > 0] = 255
+				fname_mask = f'pred{fnum}mask{str(count).zfill(2)}.png'
+				path_mask = os.path.join(mask_dir, fname_mask)
+				cv2.imwrite(path_mask, mask)
+
+		# If not mask found, stores missed
+		else:
+			mask_missed.append(path_rgb)
+
+	# Returns mask dict and missed masks
+	return (gt_dict_masks, mask_missed)
 
 # Main function, needs at least dataset directory path
 def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
@@ -172,8 +270,9 @@ def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 	# Creates masks if true
 	mask = True
 	if mask:
-		gt_dict_masks = create_masks(gt_dict)
-	else: gt_dict_masks = gt_dict
+		gt_dict_masks, mask_missed = create_masks(gt_dict)
+	else: 
+		gt_dict_masks = gt_dict
 
 	return gt_dict_masks
 
