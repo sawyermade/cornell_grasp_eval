@@ -269,7 +269,7 @@ def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 
 	# Creates masks if true
 	mask = True
-	
+
 	# If masks, gets masks and missed masks
 	if mask:
 		gt_dict_masks, mask_missed = create_masks(gt_dict)
@@ -285,14 +285,14 @@ def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 
 # If main file, gets cli args
 if __name__ == '__main__':
-	# Args, main dataset path and vis output path
+	# Args positional, main dataset path and vis output path
 	incl_negs = False
+	vis_dir_path = None
 	dataset_dir_path = sys.argv[1]
 	if len(sys.argv) > 2:
 		vis_dir_path = sys.argv[2]
 		if len(sys.argv) > 3:
 			incl_negs = True
-	else: vis_dir_path = None
 
 	# Runs main
 	main(dataset_dir_path, vis_dir_path, incl_negs)

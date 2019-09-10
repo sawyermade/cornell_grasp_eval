@@ -32,7 +32,7 @@ def parse_args():
 		'--thresh',
 		dest='thresh',
 		help='Threshold for visualizing detections',
-		default=0.7,
+		default=0.5,
 		type=float
 	)
 	parser.add_argument(
