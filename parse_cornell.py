@@ -142,6 +142,10 @@ def create_vis(vis_dir_path, gt_dict, incl_negs=False):
 	# Completed successfully
 	return True
 
+# Creates masks for all 885 rgb pngs using FAIR Detectron/Mask R-CNN
+def create_masks(gt_dict):
+	pass
+
 def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 	# Gets all rgb png paths
 	path_list_rgb = get_rgb_paths(dataset_dir_path)
@@ -155,6 +159,11 @@ def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 	# If vis
 	if vis_dir_path:
 		create_vis(vis_dir_path, gt_dict, incl_negs)
+
+	# Creates masks
+	mask = True
+	if mask:
+		create_masks(gt_dict)
 
 	return gt_dict
 
