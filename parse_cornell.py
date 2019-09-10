@@ -60,7 +60,7 @@ def make_gt_dict(path_list_rgb, path_list_pos, path_list_neg):
 
 				# Checks if new rectangle or not
 				if num != 0 and (num+1) % 4 == 0:
-					# Adds rectangle to list if no NaNs, cleas for new rec
+					# Adds rectangle to list if no NaNs, clears for new rec
 					nan_flag = False
 					for ps in rec_pts:
 						for p in ps:
