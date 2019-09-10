@@ -269,14 +269,18 @@ def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 
 	# Creates masks if true
 	mask = True
+	# If masks, gets masks and missed masks
 	if mask:
 		gt_dict_masks, mask_missed = create_masks(gt_dict)
 		for mask in mask_missed:
 			print(mask)
+
+	# If not masks, just reg gt dict
 	else: 
 		gt_dict_masks = gt_dict
 
-	return gt_dict_masks
+	# Returns gt_dict, with/without masks
+	return gt_dict_masks, mask_missed
 
 # If main file, gets cli args
 if __name__ == '__main__':
