@@ -146,6 +146,7 @@ def create_vis(vis_dir_path, gt_dict, incl_negs=False):
 def create_masks(gt_dict):
 	pass
 
+# Main function, needs at least dataset directory path
 def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 	# Gets all rgb png paths
 	path_list_rgb = get_rgb_paths(dataset_dir_path)
@@ -163,10 +164,12 @@ def main(dataset_dir_path, vis_dir_path=None, incl_negs=False):
 	# Creates masks
 	mask = True
 	if mask:
-		create_masks(gt_dict)
+		gt_dict_masks = create_masks(gt_dict)
+	else: gt_dict_masks = gt_dict
 
-	return gt_dict
+	return gt_dict_masks
 
+# If main file, gets cli args
 if __name__ == '__main__':
 	# Args, main dataset path and vis output path
 	incl_negs = False
